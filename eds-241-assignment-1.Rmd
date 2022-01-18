@@ -1,0 +1,84 @@
+---
+title: "EDS241: Assignment 1"
+author: "Connor Flynn"
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+output: 
+  pdf_document:
+    toc: false
+    number_sections: yes
+header-includes:
+  - \setlength{\parindent}{1em}
+  - \usepackage{float}
+--- 
+
+``` {r setup, echo = FALSE, message = FALSE, warning = FALSE}
+
+# set default chunk options
+knitr::opts_chunk$set(fig.width = 4, fig.height = 3, 
+                      echo = TRUE, message = FALSE, warning = FALSE)
+
+
+# load packages
+packages=c("stargazer", "here", "tidyr", "dplyr","stringr", "janitor", 
+           "cowplot", "ggplot2", "tinytex", "datasets", "tibble", "openxlsx")
+
+for (i in packages) {
+  if (require(i,character.only=TRUE)==FALSE) {
+    install.packages(i,repos='http://cran.us.r-project.org')
+  }
+  else {
+    require(i,character.only=TRUE)
+  }
+}
+
+#devtools::install_github('rstudio/rmarkdown')
+options(scipen=999) # not scientific notation
+```
+
+
+```{r}
+data <- read.xlsx(here('data/CES4.xlsx'))
+```
+
+
+```{r}
+data <- data %>% 
+  select(Census.Tract, Total.Population, California.County, Low.Birth.Weight, PM2.5, Poverty)
+```
+
+```{r}
+PM2.5_Concentration_California_County <- data %>% 
+  group_by(California.County) %>% 
+  summarise(PM2.5_Mean_County = mean(PM2.5, na.rm = TRUE))
+
+PM2.5_Concentration_California <- mean(PM2.5_Concentration_California_County$PM2.5_Mean_County)
+PM2.5_Concentration_California
+```
+
+8.051418
+
+
+```{r}
+Poverty_California_County <- data %>% 
+  group_by(California.County) %>% 
+  summarise(Poverty_Mean_County = mean(Poverty, na.rm = TRUE))
+```
+
+Tulare has the highest poverty
+
+
+```{r}
+Low.Birth.Weight_hist <- ggplot(data = data, aes(x = Low.Birth.Weight)) +
+  geom_histogram()
+
+Low.Birth.Weight_hist
+```
+
+
+```{r}
+PM2.5_hist <- ggplot(data = data, aes(x = PM2.5)) +
+  geom_histogram()
+
+PM2.5_hist
+```
+
