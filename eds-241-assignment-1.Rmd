@@ -20,7 +20,8 @@ knitr::opts_chunk$set(fig.width = 4, fig.height = 3,
 
 # load packages
 packages=c("stargazer", "here", "tidyr", "dplyr","stringr", "janitor", 
-           "cowplot", "ggplot2", "tinytex", "datasets", "tibble", "openxlsx")
+           "cowplot", "ggplot2", "tinytex", "datasets", "tibble", "openxlsx", 
+           'estimatr', "knitr")
 
 for (i in packages) {
   if (require(i,character.only=TRUE)==FALSE) {
@@ -32,7 +33,7 @@ for (i in packages) {
 }
 
 #devtools::install_github('rstudio/rmarkdown')
-options(scipen=999) # not scientific notation
+options(scipen=20) # not scientific notation
 ```
 
 
@@ -46,16 +47,16 @@ data <- data %>%
   select(Census.Tract, Total.Population, California.County, Low.Birth.Weight, PM2.5, Poverty)
 ```
 
-```{r}
-PM2.5_Concentration_California_County <- data %>% 
-  group_by(California.County) %>% 
-  summarise(PM2.5_Mean_County = mean(PM2.5, na.rm = TRUE))
 
-PM2.5_Concentration_California <- mean(PM2.5_Concentration_California_County$PM2.5_Mean_County)
-PM2.5_Concentration_California
+
+```{r}
+PM2.5_Concentration_California_Mean <- mean(data$PM2.5)
+PM2.5_Concentration_California_Mean
 ```
 
-8.051418
+A). The average concentration of PM2.5 acrosss all census tracts in California is 10.1527 micro grams /cubic meter.
+
+
 
 
 ```{r}
@@ -64,7 +65,7 @@ Poverty_California_County <- data %>%
   summarise(Poverty_Mean_County = mean(Poverty, na.rm = TRUE))
 ```
 
-Tulare has the highest poverty
+B). Tulare has the highest level of poverty in California
 
 
 ```{r}
@@ -80,5 +81,63 @@ PM2.5_hist <- ggplot(data = data, aes(x = PM2.5)) +
   geom_histogram()
 
 PM2.5_hist
+```
+
+
+```{r}
+model_1 <- lm_robust(Low.Birth.Weight ~ PM2.5, data = data)
+summary(model_1)
+```
+
+D). Estimated Slope Coefficient = 0.1179
+    Heteroskedasticity-robust standard error = 0.008402
+    For every one unit increase in PM2.5 concentration, there is a 0.1179% increase in low birth weights
+    Based on the p value, the effect of PM2.5 on LowBirthWeight is statistically significant at the 95% Confidence level
+
+
+
+
+```{r}
+model_3 <- lm_robust(Low.Birth.Weight ~ PM2.5 + Poverty, data = data)
+summary(model_3)
+```
+
+F). For every one unit increase in poverty, there is a 0.02 % increase in low birth weights.
+    The estimated coefficient on PM2.5 decreases compared to the regression excluding poverty as an explanatory variable. This      makes sense because we've added an explanatory variable that effects the percentage of low birth weights, therefore decreasing the significance of PM2.5 in the regression. 
+    
+
+G). The absolute value of the test statistic is greter than 2, therefore rejecting the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty 
+
+
+
+
+
+
+
+```{r}
+birth_weight_PM2.5_plot = ggplot(data = data, aes(x = PM2.5, 
+                                                  y = Low.Birth.Weight, col = California.County)) +
+  geom_point()+
+  geom_smooth(method  = "lm", col = "black")
+
+birth_weight_PM2.5_plot
+```
+
+
+
+```{r}
+model_5 <- lm_robust(Low.Birth.Weight ~ Poverty, data = data)
+summary(model_5)
+```
+
+
+
+```{r}
+birth_weight_Poverty_plot = ggplot(data = data, aes(x = Poverty, 
+                                                  y = Low.Birth.Weight, col = California.County)) +
+  geom_point()+
+  geom_smooth(method  = "lm", col = "black")
+
+birth_weight_Poverty_plot
 ```
 
