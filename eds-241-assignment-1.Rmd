@@ -21,7 +21,7 @@ knitr::opts_chunk$set(fig.width = 4, fig.height = 3,
 # load packages
 packages=c("stargazer", "here", "tidyr", "dplyr","stringr", "janitor", 
            "cowplot", "ggplot2", "tinytex", "datasets", "tibble", "openxlsx", 
-           'estimatr', "knitr")
+           'estimatr', "knitr", "car")
 
 for (i in packages) {
   if (require(i,character.only=TRUE)==FALSE) {
@@ -65,9 +65,10 @@ Poverty_California_County <- data %>%
   summarise(Poverty_Mean_County = mean(Poverty, na.rm = TRUE))
 ```
 
-B). Tulare has the highest level of poverty in California
+B). Based on mean poverty at the county level, Tulare has the highest level of poverty in California.
 
 
+C).
 ```{r}
 Low.Birth.Weight_hist <- ggplot(data = data, aes(x = Low.Birth.Weight)) +
   geom_histogram()
@@ -91,7 +92,7 @@ summary(model_1)
 
 D). Estimated Slope Coefficient = 0.1179
     Heteroskedasticity-robust standard error = 0.008402
-    For every one unit increase in PM2.5 concentration, there is a 0.1179% increase in low birth weights
+    For every one unit increase in PM2.5 concentration, there is a 0.1179 increase in percentage of low birth weights
     Based on the p value, the effect of PM2.5 on LowBirthWeight is statistically significant at the 95% Confidence level
 
 
@@ -102,23 +103,49 @@ model_3 <- lm_robust(Low.Birth.Weight ~ PM2.5 + Poverty, data = data)
 summary(model_3)
 ```
 
-F). For every one unit increase in poverty, there is a 0.02 % increase in low birth weights.
-    The estimated coefficient on PM2.5 decreases compared to the regression excluding poverty as an explanatory variable. This      makes sense because we've added an explanatory variable that effects the percentage of low birth weights, therefore decreasing the significance of PM2.5 in the regression. 
+F). For every one unit increase in poverty, there is a 0.02 increase in percentage of low birth weights.
+    The estimated coefficient on PM2.5 decreases compared to the regression excluding poverty as an explanatory variable (D).       
+    This makes sense because we've added an explanatory variable that effects the percentage of low birth weights, therefore decreasing the                    significance of PM2.5 in the regression. 
     
 
-G). The absolute value of the test statistic is greter than 2, therefore rejecting the null hypothesis that the effect of PM2.5 is equal to the effect of Poverty 
+```{r}
+linearHypothesis(model_3,c("PM2.5 = Poverty"), white.adjust = "hc2")
+```
+
+
+G). Based on the linear hypothesis test above, we can reject the null hypothesis that the effect of PM2.5 is equal to the
+effect of Poverty in regression F.
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Exploratory Visualization & Analysis
 
 
 ```{r}
 birth_weight_PM2.5_plot = ggplot(data = data, aes(x = PM2.5, 
-                                                  y = Low.Birth.Weight, col = California.County)) +
+                                                  y = Low.Birth.Weight)) +
   geom_point()+
-  geom_smooth(method  = "lm", col = "black")
+  geom_smooth(method  = "lm", col = "blue")
 
 birth_weight_PM2.5_plot
 ```
@@ -134,9 +161,9 @@ summary(model_5)
 
 ```{r}
 birth_weight_Poverty_plot = ggplot(data = data, aes(x = Poverty, 
-                                                  y = Low.Birth.Weight, col = California.County)) +
+                                                  y = Low.Birth.Weight)) +
   geom_point()+
-  geom_smooth(method  = "lm", col = "black")
+  geom_smooth(method  = "lm", col = "blue")
 
 birth_weight_Poverty_plot
 ```
